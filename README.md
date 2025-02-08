@@ -1,0 +1,1 @@
+# JP-LRN-006-AWS-LC-frontend
