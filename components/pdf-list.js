@@ -2,6 +2,7 @@ import styles from '../styles/pdf-list.module.css';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import PDFComponent from './pdf';
+import TextArea from './textarea';
 
 export default function PdfList() {
   const [pdfs, setPdfs] = useState([]);
@@ -121,6 +122,42 @@ you will need to restart the frontend.*/
     fetchPdfs(value);
   }
 
+  function getSelectedPdfs(pdf) {
+    // console.log(pdf.selected);
+    return pdf.selected;
+  }
+
+  async function handleSearchPdf(value) {
+    // console.log(value);
+    const body_data = `{ "question": "${value}"}`;
+
+    // const copy = [...pdfs];
+    const selectedFiles = pdfs.filter(getSelectedPdfs);
+    // console.log(selectedFiles);
+
+    if (selectedFiles.length == 0) {
+      alert("Please select file to ask about.");
+      return;
+    }
+
+    // console.log(selectedFiles[0]);
+    const url = process.env.NEXT_PUBLIC_API_URL + `/pdfs/qa-pdf/${selectedFiles[0].id}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: body_data,
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+      const answer = await response.json();
+      console.log(answer);
+      const element = document.getElementById('chat-response');
+      element.innerHTML = answer;
+    }
+    return;
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.mainInputContainer}>
@@ -138,6 +175,13 @@ you will need to restart the frontend.*/
         <button className={`${styles.filterBtn} ${filter === true && styles.filterActive}`} onClick={() => handleFilterChange(true)}>See Selected</button>
         <button className={`${styles.filterBtn} ${filter === false && styles.filterActive}`} onClick={() => handleFilterChange(false)}>See Not Selected</button>
       </div>
+    <div>
+      <TextArea onSubmit={handleSearchPdf}/>
+    </div>
+
+        <div id='chat-response'>
+            
+        </div>
     </div>
   );
 }
